@@ -1,0 +1,115 @@
+---
+title: "Reproduzierbarkeit wissenschaftliche Ergebnisse"
+author: "Ramon Schildknecht"
+date: "1 November 2018"
+output: 
+  html_document:
+    toc: true
+---
+
+&nbsp;  
+
+
+# Management Summary
+## Fragestellung
+1. Welches aus drei zufaellig gewaehlten Autos verbraucht pro 100km am wenigsten Liter Benzin? Die Wahl erfolgt nach der Gruppierung von Zylindern. 
+
+
+## Antwort
+
+Die nach Anzahl Zylinder gruppierten Autos mit dem geringsten Literverbrauch auf 100km in der zufaellig generierten Stichprobe sind:
+
+- 4 Zylinder: Fiat 128 (7.26l/100km) 
+- 6 Zylinder: Ferrari Dino (11.94l/100km) 
+- 8 Zylinder: Dodge Challenger (15.18l/100km) 
+
+&nbsp; 
+
+# Herleitung
+## Datenvorbereitung
+
+Pakete laden
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+library(tidyverse) # Tidyverse-Universum ist eine Sammlung von Best Practice DS Paketen für R
+# Details gibt's auf https://www.tidyverse.org/
+library(summarytools) # visuelle Darstellung statistischer Kennzahlen und Verteilungen
+library(magrittr) # Nutzung von %<>% Operator in Pipes
+```
+
+&nbsp; 
+
+- Daten werden geladen 
+- Wie sehen meine Daten aus? 
+
+```{r cars}
+(d <- as_tibble(mtcars))
+
+# Codebook anzeigen falls noetig
+# ?mtcars
+
+str(d)
+# ein wenig bessere Darstellung als str()
+glimpse(d)
+
+summary(d)
+# Bessere Darstellung statistischer Kennzahlen inkl. Diagramme
+view(dfSummary(d))
+# mehr Moeglichkeiten zu summarytools: https://github.com/dcomtois/summarytools
+
+```
+
+&nbsp; 
+
+### Daten vorbereiten
+
+- Umwandlung Miles per Gallon in Literverbrauch auf 100km (1 Meile entspricht rund 1.61km und eine Gallone rund 3.79l) 
+- Reproduzierbares Datensample gruppiert nach Zylinder generieren 
+- Passende Attribute selektieren 
+
+```{r}
+# Attribut Benzinverbrauch in l auf 100km erstellen
+reihen_namen <- rownames(d)
+d %<>% # entspricht d <- d %>% ...
+  mutate(carname = reihen_namen, 
+         lbp100km = round((100 * 3.785411784)/(1.609344 * mpg),2)) 
+  # https://www.calculateme.com/gas-mileage/us-mpg-to-liters-per-100-km
+  
+
+# Zufaelliges Datensubset generieren
+set.seed(22) # sorgt fuer eindeutige Ergebnisse trotz Zufallsfunktion
+(d_sample <- d %>% 
+  group_by(cyl) %>% 
+  sample_n(3) %>% 
+  ungroup(cyl))
+
+# passende Attribute auswaehlen
+(d_sample %<>%
+  select(carname, lbp100km, mpg, cyl))
+  
+```
+
+
+
+## Datenanalyse
+
+```{r}
+# Datenstichprobe alle Elemente
+d_sample
+  
+
+# Datenstichprobe tiefster Literverbrauch/100km-Wert pro Gruppe Zylinder
+(d_tiefster_verbraucht <- d_sample %>% 
+  group_by(cyl) %>%  # gruppieren nach Zylinder
+  top_n(-1, wt=lbp100km) %>% # - waehlt tiefstes Element aus Gruppe, wt definiert zu filternde Spalte
+  ungroup()) # Gruppierung aufheben
+  
+```
+
+
+## Ergebnis / Bewertung
+Die Autos mit dem geringsten Literverbrauch auf 100km in der zufaellig generierten Stichprobe sind:
+
+- 4 Zylinder: Fiat 128 (7.26l/100km) 
+- 6 Zylinder: Ferrari Dino (11.94l/100km) 
+- 8 Zylinder: Dodge Challenger (15.18l/100km) 
+
