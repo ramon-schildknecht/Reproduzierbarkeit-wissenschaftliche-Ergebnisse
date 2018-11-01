@@ -3,6 +3,9 @@
 ## Ergebnis
 ist auf RPubs publiziert: https://rpubs.com/ramon_schildknecht/reproduzierbarkeit_wissenschaftliche_Ergebnisse
 
+## Hintergründe
+sind im PowerPoint-File (Endung mit .pptx) zu finden
+
 ## Anleitung
 1. .Rmd-Datei herunterladen und in RStudio öffnen
 2. Code laufen lassen 
